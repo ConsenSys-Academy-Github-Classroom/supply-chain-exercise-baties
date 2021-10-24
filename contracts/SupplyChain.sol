@@ -4,11 +4,11 @@ pragma solidity >=0.5.16 <0.9.0;
 contract SupplyChain {
 
   // <owner>
-  address public owner ;
+  address public owner = msg.sender ;
   // <skuCount>
-  uint256 public skuCount ;
+  uint public skuCount ;
   // <items mapping>
-  mapping(uint256 => Item) public items ;
+  mapping(uint => Item) public items ;
   // <enum State: ForSale, Sold, Shipped, Received>
   enum State {
       ForSale,
@@ -19,8 +19,8 @@ contract SupplyChain {
   // <struct Item: name, sku, price, state, seller, and buyer>
   struct Item{
       string name;
-      uint256 sku;
-      uint256 price;
+      uint sku;
+      uint price;
       State state;
       address payable seller;
       address payable buyer;
@@ -30,13 +30,13 @@ contract SupplyChain {
    */
 
   // <LogForSale event: sku arg>
-  event LogForSale(uint256 sku) ;
+  event LogForSale(uint sku) ;
   // <LogSold event: sku arg>
-  event LogSold(uint256 sku) ;
+  event LogSold(uint sku) ;
   // <LogShipped event: sku arg>
-  event LogShipped(uint256 sku) ;
+  event LogShipped(uint sku) ;
   // <LogReceived event: sku arg>
-  event LogReceived(uint256 sku) ;
+  event LogReceived(uint sku) ;
 
 
   /* 
@@ -46,8 +46,8 @@ contract SupplyChain {
   // Create a modifer, `isOwner` that checks if the msg.sender is the owner of the contract
 
   // <modifier: isOwner
-  modifier isOwner (address _address) {
-    require (owner == _address) ;
+  modifier isOwner () {
+    require (msg.sender == owner) ;
     _;
   }
 
@@ -118,7 +118,7 @@ contract SupplyChain {
      buyer: address(0)
     });
     
-    skuCount = skuCount + 1;
+    skuCount += 1 ;
     emit LogForSale(skuCount);
     return true;
   }
@@ -136,7 +136,7 @@ contract SupplyChain {
   // 6. call the event associated with this function!
   function buyItem(uint sku) public payable 
     forSale(sku)
-    paidEnough(sku)
+    paidEnough(items[sku].price)
     checkValue(sku)
   {
       items[sku].seller.transfer(items[sku].price);
